@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>あっちむいてほい！反射神経チャレンジ</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151e33;--text:#f8fafc;--muted:#aab6cc;--accent:#7cddc4;--danger:#ff7185;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at top,#1b2a49 0%,var(--bg) 62%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:center}
+.app{width:min(100%,520px);min-height:100svh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:13px}
+header{text-align:center}.kicker{font-size:12px;letter-spacing:.16em;color:var(--accent);font-weight:800}h1{font-size:clamp(27px,8vw,38px);margin:5px 0 0}.sub{color:var(--muted);font-size:13px;margin:7px 0 0}
+.bgm{display:flex;align-items:center;gap:10px;background:#151e33;border:1px solid #34435f;border-radius:15px;padding:10px 12px}.bgm button{border:1px solid #526481;background:#263650;color:white;border-radius:10px;padding:9px 12px;font-weight:800;white-space:nowrap}.bgm button.on{background:#174b42;color:#b8ffeb}.volume{display:flex;align-items:center;gap:7px;flex:1;min-width:0;color:var(--muted);font-size:12px}.volume input{width:100%;min-width:45px;accent-color:var(--accent)}
+.screen{display:none;flex:1;flex-direction:column;justify-content:center;gap:15px}.screen.active{display:flex}.panel{background:linear-gradient(160deg,#202c46,#151e33);border:1px solid #34435f;border-radius:22px;padding:19px;box-shadow:0 14px 35px #0004}
+.primary,.secondary,.dir{border:0;cursor:pointer;font:inherit;font-weight:800;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.primary{width:100%;padding:16px;border-radius:16px;background:var(--accent);color:#09231f;font-size:19px;box-shadow:0 5px 0 #399d88}.primary:active{transform:translateY(3px);box-shadow:0 2px 0 #399d88}.secondary{padding:12px 16px;border-radius:13px;background:#34435f;color:white}
+.rules h2,.result h2{margin:0 0 10px;font-size:22px}.rules ul{padding-left:1.25em;color:#d9e2f2;line-height:1.8;margin:0}.small{font-size:11px;color:var(--muted);text-align:center}
+.stats{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px}.stat strong{display:block;color:white;font-size:21px;font-variant-numeric:tabular-nums}
+.arena{min-height:245px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}.prompt{font-size:clamp(25px,7vw,34px);font-weight:900;min-height:43px}.hand{font-size:clamp(105px,30vw,145px);line-height:1.2;min-height:140px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 8px 10px #0005)}.hand.pop{animation:pop .16s ease-out}@keyframes pop{from{transform:scale(.55)}to{transform:scale(1)}}.timer{font-size:clamp(35px,10vw,48px);font-weight:900;font-variant-numeric:tabular-nums;color:var(--gold)}.timer.urgent{color:var(--danger)}.feedback{height:34px;font-size:29px;font-weight:900;color:var(--accent)}
+.directions{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,72px);gap:9px}.dir{border-radius:16px;background:linear-gradient(180deg,#f8fafc,#dce6f2);color:#152238;font-size:25px;box-shadow:0 5px 0 #91a4bd}.dir:active{transform:translateY(3px);box-shadow:0 2px 0 #91a4bd}.dir.up{grid-column:2;grid-row:1}.dir.left{grid-column:1;grid-row:2}.dir.down{grid-column:2;grid-row:2}.dir.right{grid-column:3;grid-row:2}.dir:disabled{opacity:.45}
+.hint{text-align:center;color:var(--muted);font-size:12px}.result{text-align:center}.rank{font-size:clamp(26px,8vw,37px);font-weight:950;color:var(--gold);margin:14px 0}.score{font-size:18px;color:#dce6f2}.result-note{color:var(--muted);line-height:1.7;font-size:14px}
+</style>
+</head>
+<body>
+<main class="app">
+<header><div class="kicker">REFLEX CHALLENGE</div><h1>あっちむいてほい！</h1><p class="sub">見てから避けろ。反射神経の限界に挑戦！</p></header>
+<div class="bgm"><button id="bgmToggle" class="on" type="button">BGM：ON</button><label class="volume" for="bgmVolume">音量<input id="bgmVolume" type="range" min="0" max="100" value="35"><span id="volumeValue">35%</span></label></div>
+<audio id="bgm" src="./今すぐ、逃げろ_Loop.mp3" preload="auto" loop></audio>
+<section id="home" class="screen active"><div class="panel" style="text-align:center"><div style="font-size:76px;margin:5px 0 12px">👆</div><p style="color:#d9e2f2;line-height:1.8;margin:0">コンピューターの指が向いた方向とは<br><b style="color:var(--accent)">違う方向</b>をすばやくタップしよう！</p></div><button class="primary" id="startBtn">スタート</button></section>
+<section id="rules" class="screen"><div class="panel rules"><h2>遊び方</h2><ul><li>「ほい！」と同時に指が上下左右のどれかを向きます。</li><li>指と<b>違う方向</b>のボタンを制限時間内にタップ！</li><li>同じ方向を押す、または時間切れでゲームオーバー。</li><li>成功するほど制限時間が短くなります。</li></ul><p class="small" style="margin:14px 0 0">最初は20秒。73回目以降は0.01秒ずつ短縮！</p></div><button class="primary" id="okBtn">OK！ゲーム開始</button></section>
+<section id="game" class="screen"><div class="stats"><div class="stat">チャレンジ回数<strong id="round">1回目</strong></div><div class="stat" style="text-align:right">成功<strong id="score">0回</strong></div></div><div class="panel arena"><div class="prompt" id="prompt">あっちむいて....</div><div class="hand" id="hand">✊</div><div class="timer" id="timer">20.00</div><div class="feedback" id="feedback"></div></div><div class="directions"><button class="dir up" data-dir="up">上</button><button class="dir left" data-dir="left">左</button><button class="dir down" data-dir="down">下</button><button class="dir right" data-dir="right">右</button></div><div class="hint">指と同じ方向を押すとアウト！</div></section>
+<section id="over" class="screen"><div class="panel result"><div style="font-size:64px">🏁</div><h2>ゲームオーバー</h2><div class="score">あなたの成功回数</div><div class="rank" id="rank">普通</div><div class="score" id="finalScore">0回</div><p class="result-note" id="resultNote"></p></div><button class="primary" id="retryBtn">もう一度挑戦</button><button class="secondary" id="homeBtn">タイトルに戻る</button></section>
+<div class="small">BGMが再生されない場合は、BGMを一度OFF/ONにしてください。</div>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),screens=["home","rules","game","over"],dirs=["up","down","left","right"],hands={up:"☝️",down:"👇",left:"👈",right:"👉"};
+const buttons=[...document.querySelectorAll(".dir")],bgm=$("bgm"),toggle=$("bgmToggle"),vol=$("bgmVolume");let bgmOn=true,roundNo=1,score=0,current=null,deadline=0,active=false,raf=0,intro=0,next=0;
+bgm.volume=.35;
+function syncBgm(){toggle.textContent=bgmOn?"BGM：ON":"BGM：OFF";toggle.classList.toggle("on",bgmOn);toggle.setAttribute("aria-pressed",String(bgmOn))}
+function playBgm(){if(bgmOn&&bgm.volume>0)bgm.play().catch(()=>{})}
+toggle.onclick=()=>{bgmOn=!bgmOn;if(bgmOn)playBgm();else bgm.pause();syncBgm()};
+vol.oninput=()=>{bgm.volume=Number(vol.value)/100;$("volumeValue").textContent=vol.value+"%";if(bgm.volume===0)bgm.pause();else playBgm()};
+function show(n){screens.forEach(s=>$(s).classList.toggle("active",s===n))}
+function limit(n){if(n<=18)return 21-n;if(n<=23)return 2;if(n<=28)return 1;if(n<=73)return Math.max(.1,+(0.9-Math.floor((n-29)/5)*.1).toFixed(2));return Math.max(0,+(0.1-(Math.floor((n-74)/5)+1)*.01).toFixed(2))}
+function lock(v){buttons.forEach(b=>b.disabled=v)}
+function start(){clearTimeout(intro);clearTimeout(next);cancelAnimationFrame(raf);roundNo=1;score=0;$("score").textContent="0回";show("game");round()}
+function round(){active=false;current=null;lock(true);$("round").textContent=roundNo+"回目";$("prompt").textContent="あっちむいて....";$("hand").textContent="✊";$("timer").classList.remove("urgent");$("timer").textContent=limit(roundNo).toFixed(2);$("feedback").textContent="";intro=setTimeout(()=>{const t=limit(roundNo);if(t<=0){over();return}current=dirs[Math.floor(Math.random()*4)];$("prompt").textContent="ほい！";$("hand").textContent=hands[current];$("hand").classList.remove("pop");void $("hand").offsetWidth;$("hand").classList.add("pop");deadline=performance.now()+t*1000;active=true;lock(false);tick()},1050)}
+function tick(){if(!active)return;const left=Math.max(0,(deadline-performance.now())/1000);$("timer").textContent=left.toFixed(2);$("timer").classList.toggle("urgent",left<=1);if(left<=0){active=false;over();return}raf=requestAnimationFrame(tick)}
+function ping(){try{const C=window.AudioContext||window.webkitAudioContext,c=new C(),o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.16,c.currentTime+.012);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.17);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.18);o.onended=()=>c.close()}catch(e){}}
+function choose(d){if(!active)return;active=false;cancelAnimationFrame(raf);lock(true);if(d===current){over();return}score++;$("score").textContent=score+"回";$("feedback").textContent="〇";ping();next=setTimeout(()=>{roundNo++;round()},360)}
+function rank(s){if(s<=4)return["下手","まずは方向を見て、落ち着いて反応してみよう！"];if(s<=19)return["普通","いい感じ！少しずつ反応速度を上げていこう。"];if(s<=50)return["良","50回成功！十分に健闘しています。"];if(s<=73)return["すごい","短い制限時間にも対応できています。"];if(s<=93)return["かなりすごい","ここまで連続成功するのはなかなか難しい！"];if(s<=123)return["人類の上位数％","驚異的な記録！反射神経の持ち主です。"];if(s<=148)return["神","人間離れした記録です。"];return["なぜそこまで押せているのか意味不明","もはや伝説。何が起きているのでしょうか……！"]}
+function over(){active=false;cancelAnimationFrame(raf);clearTimeout(intro);clearTimeout(next);lock(true);const [r,n]=rank(score);$("rank").textContent=r;$("finalScore").textContent=score+"回成功";$("resultNote").textContent=n+" 最後に挑戦した回数："+roundNo+"回目。";show("over")}
+buttons.forEach(b=>b.addEventListener("click",()=>choose(b.dataset.dir)));$("startBtn").onclick=()=>{show("rules");playBgm()};$("okBtn").onclick=()=>{playBgm();start()};$("retryBtn").onclick=()=>{playBgm();start()};$("homeBtn").onclick=()=>show("home");syncBgm();
+})();
+</script>
+</body></html>
